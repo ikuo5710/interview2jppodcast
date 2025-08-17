@@ -41,6 +41,9 @@ export async function processAudio(chunk: string, outputFilePath: string): Promi
 ${chunk}
 --- text end ---`;
 
+  const voiceSpeaker1 = process.env.VOICE_SPEAKER_1 || 'Charon';
+  const voiceSpeaker2 = process.env.VOICE_SPEAKER_2 || 'Leda';
+
   // Try 1: 指定モデル + generationConfig.responseMimeType = 'audio/mpeg'
   try {
     const res = await genAI.models.generateContent({
@@ -54,13 +57,13 @@ ${chunk}
               {
                 speaker: 'Speaker 1',
                 voiceConfig: {
-                  prebuiltVoiceConfig: { voiceName: 'Charon' }
+                  prebuiltVoiceConfig: { voiceName: voiceSpeaker1 }
                 }
               },
               {
                 speaker: 'Speaker 2',
                 voiceConfig: {
-                  prebuiltVoiceConfig: { voiceName: 'Leda' }
+                  prebuiltVoiceConfig: { voiceName: voiceSpeaker2 }
                 }
               }
             ]

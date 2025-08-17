@@ -39,17 +39,23 @@ async function run() {
   const outputDir = path.dirname(inputFilePath);
   const processedTextPath = path.join(outputDir, `${baseName}.processed.txt`);
   const audioOutputDir = path.join(outputDir, 'audio_output');
-  const finalOutputFilePath = path.join(process.cwd(), 'podcast.wav');
+  const finalOutputFilePath = path.join(process.cwd(), 'podcast.m4a');
+  const bgmPath = process.env.BGM_PATH;
 
   try {
-    await processTranscript(inputFilePath, processedTextPath);
-    console.log('テキスト処理が完了しました。');
+    if (bgmPath) {
+      await fs.access(bgmPath);
+      console.log(`BGMファイルを使用します: ${bgmPath}`);
+    }
+
+    //await processTranscript(inputFilePath, processedTextPath);
+    //console.log('テキスト処理が完了しました。');
 
     console.log('GraphAIによる音声化処理を開始します...');
     const processedTranscript = await fs.readFile(processedTextPath, 'utf-8');
     await processWithGraphAI(processedTranscript, audioOutputDir);
 
-    await combineAudioChunks(audioOutputDir, finalOutputFilePath);
+    await combineAudioChunks(audioOutputDir, finalOutputFilePath, bgmPath);
 
     console.log('すべての処理が正常に完了しました。');
   } catch (error) {
