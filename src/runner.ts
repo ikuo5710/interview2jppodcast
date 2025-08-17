@@ -40,7 +40,7 @@ async function run() {
   const audioOutputDir = path.join(outputDir, 'audio_output');
 
   try {
-    // await processTranscript(inputFilePath, processedTextPath);
+    await processTranscript(inputFilePath, processedTextPath);
     console.log('テキスト処理が完了しました。');
     console.log('GraphAIによる音声化処理を開始します...');
     const processedTranscript = await fs.readFile(processedTextPath, 'utf-8');
