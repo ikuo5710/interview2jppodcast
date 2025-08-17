@@ -1,6 +1,7 @@
 import 'dotenv/config';
 import { processTranscript } from './transcriptProcessor';
 import { processWithGraphAI } from './graphaiProcessor';
+import { combineAudioChunks } from './audioCombiner';
 import * as path from 'path';
 import * as fs from 'fs/promises';
 
@@ -38,13 +39,18 @@ async function run() {
   const outputDir = path.dirname(inputFilePath);
   const processedTextPath = path.join(outputDir, `${baseName}.processed.txt`);
   const audioOutputDir = path.join(outputDir, 'audio_output');
+  const finalOutputFilePath = path.join(process.cwd(), 'podcast.wav');
 
   try {
     await processTranscript(inputFilePath, processedTextPath);
     console.log('テキスト処理が完了しました。');
+
     console.log('GraphAIによる音声化処理を開始します...');
     const processedTranscript = await fs.readFile(processedTextPath, 'utf-8');
     await processWithGraphAI(processedTranscript, audioOutputDir);
+
+    await combineAudioChunks(audioOutputDir, finalOutputFilePath);
+
     console.log('すべての処理が正常に完了しました。');
   } catch (error) {
     console.error('メイン処理でエラーが発生しました。', error);

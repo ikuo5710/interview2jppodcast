@@ -30,3 +30,7 @@ lerna-debug.log*
 
 # Audio output
 /audio_output
+*.wav
+
+# Documents
+AGENTS.md
