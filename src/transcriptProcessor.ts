@@ -39,6 +39,17 @@ ${transcript}
 
 export async function processTranscript(inputFilePath: string, outputFilePath: string): Promise<void> {
   try {
+    await fs.stat(outputFilePath);
+    console.log(`出力ファイルが既に存在するため、テキスト処理をスキップします: ${outputFilePath}`);
+    return;
+  } catch (error: any) {
+    if (error.code !== 'ENOENT') {
+      throw error; // Ignore only "file not found" errors
+    }
+    // File does not exist, proceed.
+  }
+
+  try {
     console.log(`トランスクリプトファイルを読み込んでいます: ${inputFilePath}`);
     const transcript = await fs.readFile(inputFilePath, 'utf-8');
     console.log('読み込み完了。');

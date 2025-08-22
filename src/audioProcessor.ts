@@ -1,5 +1,6 @@
 import { GoogleGenAI, type SpeechConfig } from '@google/genai';
 import wav from 'wav';
+import fs from 'fs';
 
 const apiKey = process.env.GOOGLE_GENERATIVE_AI_API_KEY;
 if (!apiKey) {
@@ -34,6 +35,10 @@ async function saveWaveFile(
 }
 
 export async function processAudio(chunk: string, outputFilePath: string): Promise<void> {
+  if (fs.existsSync(outputFilePath)) {
+    console.log(`ファイルが既に存在するため、音声化をスキップします: ${outputFilePath}`);
+    return;
+  }
   console.log(`音声化を開始します: ${outputFilePath}`);
   const prompt = `以下の日本語テキストを、自然で聞きやすいポッドキャスト風の話し方で読み上げてください。
 

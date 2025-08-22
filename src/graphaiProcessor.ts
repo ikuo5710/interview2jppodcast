@@ -1,13 +1,15 @@
 import { GraphAI, GraphData, StaticNodeData, AgentFunctionInfo } from 'graphai';
 import * as agents from '@graphai/agents';
 import * as path from 'path';
+import * as fs from 'fs';
 import { processAudio } from './audioProcessor';
+import { combineAudioChunks } from './audioCombiner';
 
 // 1分待機するヘルパー関数
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 // テキストを5行ごとのチャンクに分割する関数
-const chunkTranscript = (transcript: string, linesPerChunk = 5): string[] => {
+const chunkTranscript = (transcript: string, linesPerChunk = 6): string[] => {
   const lines = transcript.split('\n');
   const chunks: string[] = [];
   for (let i = 0; i < lines.length; i += linesPerChunk) {
@@ -91,7 +93,7 @@ const graphDefinition = (audioOutputDir: string): GraphData => ({
  * @param transcript 処理済みトランスクリプト
  * @param audioOutputDir 音声ファイルの出力先ディレクトリ
  */
-export async function processWithGraphAI(transcript: string, audioOutputDir: string) {
+export async function processWithGraphAI(transcript: string, audioOutputDir: string, bgmPath?: string) {
   const allChunks = chunkTranscript(transcript);
   const batchSize = 10;
 
@@ -123,4 +125,19 @@ export async function processWithGraphAI(transcript: string, audioOutputDir: str
   }
 
   console.log('すべてのバッチ処理が完了しました。');
+
+  // すべての音声ファイルが生成されているか確認
+  const allFilesExist = allChunks.every((_, index) => {
+    const outputFilePath = path.join(audioOutputDir, `chunk_${index + 1}.wav`);
+    return fs.existsSync(outputFilePath);
+  });
+
+  if (allFilesExist) {
+    console.log('すべての音声ファイルの存在を確認しました。結合処理を開始します。');
+    const finalAudioPath = path.join(process.cwd(), 'final_podcast.m4a');
+    await combineAudioChunks(audioOutputDir, finalAudioPath, bgmPath);
+    console.log(`最終的なポッドキャストファイルを生成しました: ${finalAudioPath}`);
+  } else {
+    console.log('一部の音声ファイルが不足しているため、結合処理をスキップしました。');
+  }
 }

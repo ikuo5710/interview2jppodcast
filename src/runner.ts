@@ -53,9 +53,7 @@ async function run() {
 
     console.log('GraphAIによる音声化処理を開始します...');
     const processedTranscript = await fs.readFile(processedTextPath, 'utf-8');
-    await processWithGraphAI(processedTranscript, audioOutputDir);
-
-    await combineAudioChunks(audioOutputDir, finalOutputFilePath, bgmPath);
+    await processWithGraphAI(processedTranscript, audioOutputDir, bgmPath);
 
   } catch (error) {
     console.error('メイン処理でエラーが発生しました。', error);
