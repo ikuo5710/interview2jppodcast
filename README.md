@@ -72,7 +72,7 @@ cat your_transcript.txt | npm start -- --stdin
 
 ### BGM Customization
 
-The background music is specified by the `BGM_PATH` variable in the `.env` file. If this variable is not set, the application will look for a file named `podcast-old.m4a` in the project root directory as a fallback.
+The background music is specified by the `BGM_PATH` variable in the `.env` file. 
 
 ## How It Works
 
