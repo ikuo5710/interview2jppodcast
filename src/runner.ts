@@ -48,8 +48,8 @@ async function run() {
       console.log(`BGMファイルを使用します: ${bgmPath}`);
     }
 
-    //await processTranscript(inputFilePath, processedTextPath);
-    //console.log('テキスト処理が完了しました。');
+    await processTranscript(inputFilePath, processedTextPath);
+    console.log('テキスト処理が完了しました。');
 
     console.log('GraphAIによる音声化処理を開始します...');
     const processedTranscript = await fs.readFile(processedTextPath, 'utf-8');
@@ -57,7 +57,6 @@ async function run() {
 
     await combineAudioChunks(audioOutputDir, finalOutputFilePath, bgmPath);
 
-    console.log('すべての処理が正常に完了しました。');
   } catch (error) {
     console.error('メイン処理でエラーが発生しました。', error);
     process.exit(1);
