@@ -95,7 +95,7 @@ const graphDefinition = (audioOutputDir: string, concurrency: number): GraphData
  */
 export async function processWithGraphAI(transcript: string, audioOutputDir: string, bgmPath?: string, linesPerChunk = 20, concurrency = 10) {
   const allChunks = chunkTranscript(transcript, linesPerChunk);
-  const batchSize = 10;
+  const batchSize = concurrency;
 
   const allAgents = { ...agents, synthesizeSpeechAgent: synthesizeSpeechAgentInfo };
 
