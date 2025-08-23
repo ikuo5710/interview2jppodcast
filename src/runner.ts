@@ -1,7 +1,6 @@
 import 'dotenv/config';
 import { processTranscript } from './transcriptProcessor';
 import { processWithGraphAI } from './graphaiProcessor';
-import { combineAudioChunks } from './audioCombiner';
 import * as path from 'path';
 import * as fs from 'fs/promises';
 
@@ -52,7 +51,11 @@ async function run() {
 
     console.log('GraphAIによる音声化処理を開始します...');
     const processedTranscript = await fs.readFile(processedTextPath, 'utf-8');
-    await processWithGraphAI(processedTranscript, audioOutputDir, bgmPath);
+
+    const linesPerChunk = process.env.NUM_LINES_PER_CHUNK ? parseInt(process.env.NUM_LINES_PER_CHUNK, 10) : 20;
+    const concurrency = process.env.NUM_PARALLEL_AUDIO_EXEC ? parseInt(process.env.NUM_PARALLEL_AUDIO_EXEC, 10) : 10;
+
+    await processWithGraphAI(processedTranscript, audioOutputDir, bgmPath, linesPerChunk, concurrency);
 
   } catch (error) {
     console.error('メイン処理でエラーが発生しました。', error);

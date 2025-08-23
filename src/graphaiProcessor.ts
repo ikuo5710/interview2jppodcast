@@ -8,8 +8,8 @@ import { combineAudioChunks } from './audioCombiner';
 // 1分待機するヘルパー関数
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
-// テキストを5行ごとのチャンクに分割する関数
-const chunkTranscript = (transcript: string, linesPerChunk = 6): string[] => {
+// テキストを20行ごとのチャンクに分割する関数
+const chunkTranscript = (transcript: string, linesPerChunk = 20): string[] => {
   const lines = transcript.split('\n');
   const chunks: string[] = [];
   for (let i = 0; i < lines.length; i += linesPerChunk) {
@@ -55,9 +55,9 @@ const synthesizeSpeechAgentInfo: AgentFunctionInfo = {
 };
 
 // GraphAIのグラフ定義
-const graphDefinition = (audioOutputDir: string): GraphData => ({
+const graphDefinition = (audioOutputDir: string, concurrency: number): GraphData => ({
   version: 0.5,
-  concurrency: 10,
+  concurrency,
   nodes: {
     rows: { value: [] },
     index: { value: [] },
@@ -93,8 +93,8 @@ const graphDefinition = (audioOutputDir: string): GraphData => ({
  * @param transcript 処理済みトランスクリプト
  * @param audioOutputDir 音声ファイルの出力先ディレクトリ
  */
-export async function processWithGraphAI(transcript: string, audioOutputDir: string, bgmPath?: string) {
-  const allChunks = chunkTranscript(transcript);
+export async function processWithGraphAI(transcript: string, audioOutputDir: string, bgmPath?: string, linesPerChunk = 20, concurrency = 10) {
+  const allChunks = chunkTranscript(transcript, linesPerChunk);
   const batchSize = 10;
 
   const allAgents = { ...agents, synthesizeSpeechAgent: synthesizeSpeechAgentInfo };
@@ -104,7 +104,7 @@ export async function processWithGraphAI(transcript: string, audioOutputDir: str
     const batchIndices = batchChunks.map((_, j) => i + j);
     console.log(`バッチ ${Math.floor(i / batchSize) + 1} の処理を開始します。対象チャンク: ${i + 1} から ${i + batchChunks.length}`);
 
-    const graphData = graphDefinition(audioOutputDir);
+    const graphData = graphDefinition(audioOutputDir, concurrency);
 
     (graphData.nodes.rows as StaticNodeData).value = batchChunks;
     (graphData.nodes.index as StaticNodeData).value = batchIndices;
