@@ -111,14 +111,17 @@ export async function processWithGraphAI(transcript: string, audioOutputDir: str
 
     const graph = new GraphAI(graphData, allAgents);
 
+    let allSkipped = false;
     try {
-      await graph.run();
+      const result = await graph.run();
+      const audioFiles = result.audioFiles as (string | null)[];
+      allSkipped = audioFiles.every(file => file === null);
       console.log(`バッチ ${Math.floor(i / batchSize) + 1} の音声化が完了しました。`);
     } catch (error) {
       console.error(`バッチ ${Math.floor(i / batchSize) + 1} の処理中にエラーが発生しました。`, error);
     }
 
-    if (i + batchSize < allChunks.length) {
+    if (i + batchSize < allChunks.length && !allSkipped) {
       console.log('Geminiのレートリミットを考慮し、60秒間待機します...');
       await sleep(60000);
     }
