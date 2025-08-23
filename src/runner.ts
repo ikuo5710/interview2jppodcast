@@ -39,7 +39,6 @@ async function run() {
   const outputDir = path.dirname(inputFilePath);
   const processedTextPath = path.join(outputDir, `${baseName}.processed.txt`);
   const audioOutputDir = path.join(outputDir, 'audio_output');
-  const finalOutputFilePath = path.join(process.cwd(), 'podcast.m4a');
   const bgmPath = process.env.BGM_PATH;
 
   try {

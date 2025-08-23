@@ -14,7 +14,7 @@ const TEXT_MODEL = process.env.GOOGLE_GENAI_TEXT_MODEL || 'gemini-2.5-flash-lite
 async function callGeminiApi(transcript: string): Promise<string> {
   console.log('Gemini APIを呼び出し中...');
 
-  const prompt = `以下のインタビューのトランスクリプトを日本語に翻訳した上で話者分離してください。登場人物は二人です。一人目の発言には接頭辞としてSpeaker 1: 、二人目の発言には接頭辞としてSpeaker 2: をつけてください。なお、回答には日本語訳済の話者分離したトランスクリプトのみを記載してください。
+  const prompt = `以下のインタビューのトランスクリプトを日本語に翻訳した上で話者分離してください。登場人物は二人です。一人目の発言には接頭辞としてSpeaker 1: 、二人目の発言には接頭辞としてSpeaker 2: をつけてください。回答には日本語訳済の話者分離したトランスクリプトのみを記載してください。各行は文末の句点またはクエスチョンマークで改行してください。各行には接頭辞として必ずSpeaker 1:またはSpeaker 2:が存在するようにしてください。また、改行のみで文字列が存在しない行は存在しないようにしてください。
 
 --- transcript start ---
 ${transcript}
