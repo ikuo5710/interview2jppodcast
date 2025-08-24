@@ -76,6 +76,7 @@ const graphDefinition = (audioOutputDir: string, concurrency: number): GraphData
         nodes: {
           synthesisNode: {
             agent: "synthesizeSpeechAgent",
+            retry: 1,
             inputs: {
               chunk: ":row",
               index: ":index",

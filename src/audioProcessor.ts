@@ -85,7 +85,8 @@ ${chunk}
     }
     throw new Error('音声データを取得できませんでした(Try1)。');
   } catch (e: any) {
-    console.warn(`失敗 (${TTS_MODEL} ): ${e?.message || e}`);
+    // エラーを再スローして、呼び出し元で処理できるようにする
+    throw new Error(`失敗 (${TTS_MODEL} ): ${e?.message || e}`);
   }
 
 }
