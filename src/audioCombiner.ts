@@ -95,8 +95,8 @@ export async function combineAudioChunks(audioOutputDir: string, finalOutputFile
           cmd.input(bgmPath).inputOptions(["-stream_loop -1"]);
 
           const filter = [
-            // 0番入力（声）を正規化 → 2系統に分岐
-            "[0:a]loudnorm=I=-16:TP=-1.5:LRA=11,asplit=2[voice_mix][voice_key]",
+            // 0番入力（声）を正規化（末尾欠落防止のためパディング付き） → 2系統に分岐
+            "[0:a]apad=pad_dur=3,loudnorm=I=-16:TP=-1.5:LRA=11,asplit=2[voice_mix][voice_key]",
 
             // 1番入力（BGM）を整える
             "[1:a]volume=0.18,afade=t=in:st=0:d=2[bgm]",
@@ -104,13 +104,13 @@ export async function combineAudioChunks(audioOutputDir: string, finalOutputFile
             // BGMに声（key）でサイドチェイン・コンプをかける
             "[bgm][voice_key]sidechaincompress=threshold=0.08:ratio=8:attack=5:release=250:makeup=1[ducked]",
 
-            // ダック済みBGMと声（mix用）を合流 → 終端フェード
-            `[ducked][voice_mix]amix=inputs=2:duration=shortest:dropout_transition=0:normalize=0[mix]`,
+            // ダック済みBGMと声（mix用）を合流 → 正確な長さにトリム → 終端フェード
+            `[ducked][voice_mix]amix=inputs=2:duration=shortest:dropout_transition=0:normalize=0,atrim=end=${speechDuration}[mix]`,
             `[mix]afade=t=out:st=${fadeOutStart}:d=3[out]`,
           ].join(";");
 
           cmd.complexFilter(filter)
-            .outputOptions(["-map [out]", "-shortest"])
+            .outputOptions(["-map [out]"])
             .audioFrequency(48000)
             .audioCodec("aac").audioBitrate("192k")
             .output(finalOutputFilePath);
