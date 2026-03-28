@@ -89,7 +89,6 @@ export async function combineAudioChunks(audioOutputDir: string, finalOutputFile
       // 3. Combine speech with BGM using sidechain compression
       await new Promise<void>((resolve, reject) => {
 
-        const fadeOutStart = Math.max(speechDuration - 3, 0).toFixed(3); // 終了3秒前からフェード
         ffmpegOnce(cmd => {
           cmd.input(tempSpeechPath);
           cmd.input(bgmPath).inputOptions(["-stream_loop -1"]);
@@ -104,9 +103,8 @@ export async function combineAudioChunks(audioOutputDir: string, finalOutputFile
             // BGMに声（key）でサイドチェイン・コンプをかける
             "[bgm][voice_key]sidechaincompress=threshold=0.08:ratio=8:attack=5:release=250:makeup=1[ducked]",
 
-            // ダック済みBGMと声（mix用）を合流 → 正確な長さにトリム → 終端フェード
-            `[ducked][voice_mix]amix=inputs=2:duration=shortest:dropout_transition=0:normalize=0,atrim=end=${speechDuration}[mix]`,
-            `[mix]afade=t=out:st=${fadeOutStart}:d=3[out]`,
+            // ダック済みBGMと声（mix用）を合流 → 正確な長さにトリム
+            `[ducked][voice_mix]amix=inputs=2:duration=shortest:dropout_transition=0:normalize=0,atrim=end=${speechDuration}[out]`,
           ].join(";");
 
           cmd.complexFilter(filter)
