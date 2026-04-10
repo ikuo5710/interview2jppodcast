@@ -10,7 +10,7 @@ const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 // テキストを20行ごとのチャンクに分割する関数
 const chunkTranscript = (transcript: string, linesPerChunk = 20): string[] => {
-  const lines = transcript.split('\n');
+  const lines = transcript.split('\n').filter(line => line.trim() !== '');
   const chunks: string[] = [];
   for (let i = 0; i < lines.length; i += linesPerChunk) {
     chunks.push(lines.slice(i, i + linesPerChunk).join('\n'));
@@ -30,6 +30,10 @@ const synthesizeSpeechAgentInfo: AgentFunctionInfo = {
       return null;
     }
     const outputFilePath = path.join(outputDir, `chunk_${numericIndex + 1}.wav`);
+    if (fs.existsSync(outputFilePath)) {
+      console.log(`チャンク ${numericIndex + 1} は既に存在するためスキップします: ${outputFilePath}`);
+      return outputFilePath;
+    }
     await processAudio(chunk, outputFilePath);
     return outputFilePath;
   },
@@ -94,7 +98,7 @@ const graphDefinition = (audioOutputDir: string, concurrency: number): GraphData
  * @param transcript 処理済みトランスクリプト
  * @param audioOutputDir 音声ファイルの出力先ディレクトリ
  */
-export async function processWithGraphAI(transcript: string, audioOutputDir: string, bgmPath?: string, linesPerChunk = 20, concurrency = 10) {
+export async function processWithGraphAI(transcript: string, audioOutputDir: string, finalAudioPath: string, bgmPath?: string, linesPerChunk = 20, concurrency = 10) {
   const allChunks = chunkTranscript(transcript, linesPerChunk);
   const batchSize = concurrency;
 
@@ -135,7 +139,6 @@ export async function processWithGraphAI(transcript: string, audioOutputDir: str
 
   if (allFilesExist) {
     console.log('すべての音声ファイルの存在を確認しました。結合処理を開始します。');
-    const finalAudioPath = path.join(process.cwd(), 'final_podcast.m4a');
     await combineAudioChunks(audioOutputDir, finalAudioPath, bgmPath);
     console.log(`最終的なポッドキャストファイルを生成しました: ${finalAudioPath}`);
   } else {

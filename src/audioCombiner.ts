@@ -87,32 +87,29 @@ export async function combineAudioChunks(audioOutputDir: string, finalOutputFile
       console.log(`スピーチの長さ: ${speechDuration}秒`);
 
       // 3. Combine speech with BGM using sidechain compression
-      await new Promise<void>((resolve, reject) => {
+      await ffmpegOnce(cmd => {
+        cmd.input(tempSpeechPath);
+        cmd.input(bgmPath).inputOptions(["-stream_loop -1"]);
 
-        ffmpegOnce(cmd => {
-          cmd.input(tempSpeechPath);
-          cmd.input(bgmPath).inputOptions(["-stream_loop -1"]);
+        const filter = [
+          // 0番入力（声）を正規化（末尾欠落防止のためパディング付き） → 2系統に分岐
+          "[0:a]apad=pad_dur=3,loudnorm=I=-16:TP=-1.5:LRA=11,asplit=2[voice_mix][voice_key]",
 
-          const filter = [
-            // 0番入力（声）を正規化（末尾欠落防止のためパディング付き） → 2系統に分岐
-            "[0:a]apad=pad_dur=3,loudnorm=I=-16:TP=-1.5:LRA=11,asplit=2[voice_mix][voice_key]",
+          // 1番入力（BGM）を整える
+          "[1:a]volume=0.18,afade=t=in:st=0:d=2[bgm]",
 
-            // 1番入力（BGM）を整える
-            "[1:a]volume=0.18,afade=t=in:st=0:d=2[bgm]",
+          // BGMに声（key）でサイドチェイン・コンプをかける
+          "[bgm][voice_key]sidechaincompress=threshold=0.08:ratio=8:attack=5:release=250:makeup=1[ducked]",
 
-            // BGMに声（key）でサイドチェイン・コンプをかける
-            "[bgm][voice_key]sidechaincompress=threshold=0.08:ratio=8:attack=5:release=250:makeup=1[ducked]",
+          // ダック済みBGMと声（mix用）を合流 → 正確な長さにトリム
+          `[ducked][voice_mix]amix=inputs=2:duration=shortest:dropout_transition=0:normalize=0,atrim=end=${speechDuration}[out]`,
+        ].join(";");
 
-            // ダック済みBGMと声（mix用）を合流 → 正確な長さにトリム
-            `[ducked][voice_mix]amix=inputs=2:duration=shortest:dropout_transition=0:normalize=0,atrim=end=${speechDuration}[out]`,
-          ].join(";");
-
-          cmd.complexFilter(filter)
-            .outputOptions(["-map [out]"])
-            .audioFrequency(48000)
-            .audioCodec("aac").audioBitrate("192k")
-            .output(finalOutputFilePath);
-        });
+        cmd.complexFilter(filter)
+          .outputOptions(["-map [out]"])
+          .audioFrequency(48000)
+          .audioCodec("aac").audioBitrate("192k")
+          .output(finalOutputFilePath);
       });
       console.log(`BGM付きの最終ファイルを生成しました: ${finalOutputFilePath}`);
     }
